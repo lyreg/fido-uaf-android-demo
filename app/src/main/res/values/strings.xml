@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">Fido uaf android demo</string>
+    <string name="action_settings">Settings</string>
+    <string name="title_activity_intro">Fido Uaf Android Demo</string>
+
+
+    <string name="action_discovery">Discovery</string>
+    <string name="action_register_with_fido">Register With Fido</string>
+</resources>
