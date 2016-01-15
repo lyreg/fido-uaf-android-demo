@@ -2,7 +2,9 @@ package org.lyreg.fido_uaf_android_demo;
 
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
+import android.app.Activity;
 import android.content.ComponentName;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -16,12 +18,14 @@ import android.util.Log;
 import android.view.View;
 import android.view.View.*;
 import android.widget.Button;
+import android.widget.ListView;
 import android.widget.ProgressBar;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.JSONTokener;
+import org.lyreg.fido_uaf_android_demo.adapter.AuthenticatorListAdapter;
 import org.lyreg.fido_uaf_android_demo.uaf.AndroidClientIntentParameters;
 import org.lyreg.fido_uaf_android_demo.uaf.FidoOperation;
 import org.lyreg.fido_uaf_android_demo.uaf.UafClientLogUtils;
@@ -75,10 +79,14 @@ public class IntroActivity extends BaseActivity {
     protected void onResume() {
         super.onResume();
 
-        Log.v("onResume", clientsDiscoverAttempted + "");
-        if(clientsDiscoverAttempted == true) {
+        if(clientsDiscoverAttempted) {
+            Log.v("onResume", clientsDiscoverAttempted + "");
             showProgress(false);
-//            mFidoRegiterButton.setVisibility(View.VISIBLE);
+            List<String> list = new ArrayList<String>(getAvailableAuthenticatorAaids());
+            for(int i = 0; i < list.size(); i++) {
+                Log.v("onResume", list.get(i) + " test");
+            }
+            new AuthenticatorPopupWindow(this).show(this);
         }
     }
 
@@ -124,7 +132,8 @@ public class IntroActivity extends BaseActivity {
                 clientsDiscoverAttempted = true;
             }
         } else {
-
+            Log.v("retrieveAvailableAuthenticator", clientsDiscoverAttempted + "");
+//            mFidoRegiterButton.setVisibility(View.VISIBLE);
         }
     }
 
@@ -211,6 +220,7 @@ public class IntroActivity extends BaseActivity {
         @Override
         protected Object doInBackground(Object[] params) {
 
+            clientsDiscoverAttempted = false;
             loadClientsList();
             retrieveAvailableAuthenticatorAaids();
             return null;
@@ -219,10 +229,8 @@ public class IntroActivity extends BaseActivity {
         @Override
         protected void onPostExecute(Object o) {
 //            super.onPostExecute(o);
-            if(clientsDiscoverAttempted == true) {
-                Log.v("onPostExecute", clientsDiscoverAttempted + "");
+            if(clientsDiscoverAttempted) {
                 showProgress(false);
-//                mFidoRegiterButton.setVisibility(View.VISIBLE);
             }
         }
     }
@@ -266,6 +274,27 @@ public class IntroActivity extends BaseActivity {
             mFidoRegiterButton.setEnabled(true);
         } else {
             mFidoRegiterButton.setEnabled(false);
+        }
+    }
+
+    public class AuthenticatorPopupWindow extends BottomPushPopupWindow {
+
+        public AuthenticatorPopupWindow(Activity context) {
+            super(context);
+//            this.list = list;
+        }
+
+        @Override
+        protected View generateCustomView() {
+            View root = View.inflate(context, R.layout.window_popup, null);
+//            if(this.list == null) {
+//                Log.v("onResume", "getView");
+//            }
+            AuthenticatorListAdapter authAdapter = new AuthenticatorListAdapter((Activity) context, new ArrayList<String>(getAvailableAuthenticatorAaids()));
+
+            ListView listView = (ListView) root.findViewById(R.id.authenticatorListView);
+            listView.setAdapter(authAdapter);
+            return root;
         }
     }
 }

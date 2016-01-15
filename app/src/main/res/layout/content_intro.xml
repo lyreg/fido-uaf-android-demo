@@ -20,7 +20,7 @@
         android:layout_height="wrap_content"
         android:gravity="center"
         android:text="@string/title_activity_intro"
-        android:textSize="50sp"
+        android:textSize="55sp"
         android:shadowColor="#fbeee4"
         android:shadowDx="3"
         android:shadowDy="3"
