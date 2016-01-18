@@ -5,6 +5,8 @@ import android.content.pm.ResolveInfo;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 
 import org.lyreg.fido_uaf_android_demo.uaf.AndroidClientIntentParameters;
 import org.lyreg.fido_uaf_android_demo.uaf.FidoOperation;
@@ -41,6 +43,44 @@ public class BaseActivity extends AppCompatActivity {
         if(uafClientUtils == null) {
             uafClientUtils = new UafClientUtils();
         }
+    }
+
+    /**
+     * Enable settings menu
+     * @param menu The options menu in which you place your items
+     * @return true for menu to be displayed, otherwise false
+     */
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        getMenuInflater().inflate(R.menu.menu_main, menu);
+        return super.onCreateOptionsMenu(menu);
+    }
+
+    /**
+     * React to user selecting Settings
+     * @param item The menu item that was selected.
+     * @return Return false to allow normal menu processing to proceed, true to consume it here.
+     */
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.action_settings:
+                openSettings();
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
+    }
+
+    /**
+     * Display settings menu activity.
+     */
+    private void openSettings() {
+        Intent intent = new Intent(this, SettingsActivity.class);
+        startActivity(intent);
+
+        overridePendingTransition(R.anim.push_bottom_in, R.anim.push_bottom_out);
     }
 
     /***

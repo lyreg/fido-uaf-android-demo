@@ -62,7 +62,7 @@ public class IntroActivity extends BaseActivity {
         mDiscoveryButton.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
-
+                Log.v("OnClick", "discovery");
                 showProgress(true);
                 FindClientsAndAuthenticators findClientsAndAuthenticators = new FindClientsAndAuthenticators();
                 findClientsAndAuthenticators.execute();
@@ -73,22 +73,9 @@ public class IntroActivity extends BaseActivity {
 
         mDiscoveryButton.setEnabled(true);
         mFidoRegiterButton.setEnabled(false);
+        Log.v("onCreate", getSharedPreferences("Preferences", Context.MODE_PRIVATE).getString("pref_server_url", "baidu"));
     }
 
-    @Override
-    protected void onResume() {
-        super.onResume();
-
-        if(clientsDiscoverAttempted) {
-            Log.v("onResume", clientsDiscoverAttempted + "");
-            showProgress(false);
-            List<String> list = new ArrayList<String>(getAvailableAuthenticatorAaids());
-            for(int i = 0; i < list.size(); i++) {
-                Log.v("onResume", list.get(i) + " test");
-            }
-            new AuthenticatorPopupWindow(this).show(this);
-        }
-    }
 
     /***
      * Attempt to get the list of UAF Clients on the device and
@@ -134,7 +121,21 @@ public class IntroActivity extends BaseActivity {
         } else {
             Log.v("retrieveAvailableAuthenticator", clientsDiscoverAttempted + "");
 //            mFidoRegiterButton.setVisibility(View.VISIBLE);
+
+            showAvailableAuthenticatorAaidList();
         }
+    }
+
+    /***
+     * Show the discovered authenticators list in a PopupWindow.
+     */
+    private void showAvailableAuthenticatorAaidList() {
+        showProgress(false);
+        List<String> list = new ArrayList<String>(getAvailableAuthenticatorAaids());
+        for(int i = 0; i < list.size(); i++) {
+            Log.v("AuthAaidList", list.get(i) + " test");
+        }
+        new AuthenticatorPopupWindow(this).show(this);
     }
 
     /***
