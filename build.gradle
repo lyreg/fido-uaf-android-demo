@@ -2,6 +2,9 @@
 
 buildscript {
     repositories {
+//        jcenter {
+//            url "http://jcenter.bintray.com/"
+//        }
         jcenter()
     }
     dependencies {
