@@ -54,6 +54,15 @@ public class UafClientUtils implements IUafClientUtils {
     }
 
     /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Intent getUafOperationCompletionStatusIntent(String uafResponseMsg, int serverResponseCode, String serverResponseMsg) {
+        return this.getFidoCompletionOperation(uafResponseMsg, serverResponseCode,
+                serverResponseMsg).toIntent();
+    }
+
+    /**
      * Creates a FIDO UAF discover operation
      * @return FIDO UAF discover operation
      */
@@ -88,6 +97,18 @@ public class UafClientUtils implements IUafClientUtils {
         }
 
         return  reg.toString();
+    }
+
+    /**
+     * Creates a FIDO UAF operation completion operation.
+     * @param uafResponse response message from a UAF operation which has completed either successfully or with an error.
+     * @param responseCode server response code
+     * @param responseCodeMessage server response message (optional, may be null)
+     * @return FIDO UAF operation completion operation
+     */
+    private UafOperation getFidoCompletionOperation(String uafResponse, int responseCode, String responseCodeMessage) {
+        UAFMessage uafMessage = new UAFMessage(uafResponse, null);
+        return UafOperationFactory.createUAFOperationCompletionStatus(uafMessage, (short) responseCode, responseCodeMessage);
     }
 
     /**

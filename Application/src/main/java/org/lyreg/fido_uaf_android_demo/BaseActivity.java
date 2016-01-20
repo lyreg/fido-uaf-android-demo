@@ -15,6 +15,7 @@ import org.lyreg.fido_uaf_android_demo.http.RelyingPartyServerComms;
 import org.lyreg.fido_uaf_android_demo.uaf.AndroidClientIntentParameters;
 import org.lyreg.fido_uaf_android_demo.uaf.FidoOperation;
 import org.lyreg.fido_uaf_android_demo.uaf.IUafClientUtils;
+import org.lyreg.fido_uaf_android_demo.uaf.UafClientLogUtils;
 import org.lyreg.fido_uaf_android_demo.uaf.UafClientUtils;
 
 import java.util.ArrayList;
@@ -164,6 +165,14 @@ public class BaseActivity extends AppCompatActivity {
         } else {
             throw new UafProcessingException("no_fido_client_found");
         }
+    }
+    /**
+     * Log a UAF operation completion intent and send it to the UAF client.
+     * @param uafOperationCompletionIntent intent
+     */
+    protected void sendFidoOperationCompletionIntent(Intent uafOperationCompletionIntent) {
+        UafClientLogUtils.logUafOperationCompletionRequest(uafOperationCompletionIntent);
+        this.sendUafClientIntent(uafOperationCompletionIntent, FidoOpCommsType.OneWay);
     }
 
 

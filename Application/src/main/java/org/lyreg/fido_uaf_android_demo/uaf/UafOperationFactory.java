@@ -12,4 +12,9 @@ public class UafOperationFactory {
     public static UafOperation createUAFOperation(final UAFMessage message, final String origin, final String channelBindings) {
         return new UafOperation(UAFIntentType.UAF_OPERATION, message, origin, channelBindings, null, null);
     }
+    public static UafOperation createUAFOperationCompletionStatus(final UAFMessage message, final Short responseCode,
+                                                                  final String responseCodeMessage) {
+        return new UafOperation(UAFIntentType.UAF_OPERATION_COMPLETION_STATUS, message, null, null, responseCode,
+                responseCodeMessage);
+    }
 }

@@ -25,7 +25,6 @@ public interface IUafClientUtils {
      */
     Intent getUafOperationIntent(FidoOperation fidoOpType, String uafRequest);
 
-
     /**
      * Return response data from a UAF message.
      * @param fidoOpType FIDO UAF operation type
@@ -35,4 +34,13 @@ public interface IUafClientUtils {
      * @throws UafProcessingException with error details if the intent contains an error
      */
     String getUafClientResponse(FidoOperation fidoOpType, Intent resultIntent) throws UafProcessingException, JSONException;
+
+    /**
+     * Gets an intent which will perform a UAF operation completion operation using the UAF client app.
+     * @param uafResponseMsg response message from the UAF message which has just been processed by the UAF server.
+     * @param serverResponseCode server response code - see section 3.1 of FIDO UAF Application API and Transport Binding Specification
+     *                           v1.0 for values
+     * @param serverResponseMsg server response message (optional - may be null)
+     */
+    Intent getUafOperationCompletionStatusIntent(String uafResponseMsg, int serverResponseCode, String serverResponseMsg);
 }

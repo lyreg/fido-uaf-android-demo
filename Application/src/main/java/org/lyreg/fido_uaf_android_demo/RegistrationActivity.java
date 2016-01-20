@@ -25,6 +25,7 @@ import org.lyreg.fido_uaf_android_demo.exception.CommunicationsException;
 import org.lyreg.fido_uaf_android_demo.exception.ServerError;
 import org.lyreg.fido_uaf_android_demo.http.HttpResponse;
 import org.lyreg.fido_uaf_android_demo.uaf.FidoOperation;
+import org.lyreg.fido_uaf_android_demo.uaf.UafServerResponseCodes;
 
 public class RegistrationActivity extends BaseActivity {
 
@@ -162,15 +163,30 @@ public class RegistrationActivity extends BaseActivity {
         @Override
         protected void onPostExecute(ServerOperationResult<PostRegResponseResponse> result) {
             if(result.isSuccessful()) {
-                PostRegResponseResponse response = result.getResponse();
+                // SERVER RESPONDED OK
+                // Server responded OK but this doesn't necessarily mean that an authenticator was created successfully.
+                // The response contains a code which indicates success or failure. This response code is sent on to the UAF
+                // client so that it might delete the credential it generated on server failure. The response code
+                // is also checked by the RP app. If the return code indicates that no error was returned by the server then
+                // the log-in success screen is displayed.
 
+                PostRegResponseResponse response = result.getResponse();
                 Log.e("PostRegResponseTask", response.getFidoRegistrationResponse());
+                Intent intent = getUafClientUtils().getUafOperationCompletionStatusIntent(response.getFidoRegistrationResponse()
+                        , 1200, "success");
 //                // Send authentication request to the UAF client
 //                setCurrentUafOperation(FidoOperation.Registration);
 //                Intent regIntent = getUafClientUtils()
 //                        .getUafOperationIntent(FidoOperation.Registration, response.getFidoRegistrationRequest());
 //                sendUafClientIntent(regIntent, FidoOpCommsType.Return);
             } else {
+                // SERVER ERROR
+                // Now we need to send the registration response and server error back to the UAF client.
+                Intent intent = getUafClientUtils().getUafOperationCompletionStatusIntent(
+                        payload, UafServerResponseCodes.INTERNAL_SERVER_ERROR,
+                        "Internal Server Error");
+                sendFidoOperationCompletionIntent(intent);
+
                 endProgerssWithMsg(result.getError().getMessage());
             }
         }
