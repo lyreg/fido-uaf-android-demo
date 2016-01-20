@@ -18,7 +18,7 @@ public class Preferences {
     public static final String GET_AUTH_REQUEST = "/fidouaf/v1/public/authRequest";
     public static final String POST_AUTH_RESPONSE = "/fidouaf/v1/public/authResponse";
     public static final String POST_DEREG_RESPONSE = "/fidouaf/v1/public/deregRequest";
-    public static final String GET_REG_REQUEST = "/fidouaf/v1/public/regRequest/";
+    public static final String GET_REG_REQUEST = "/fidouaf/v1/public/regRequest";
     public static final String POST_REG_RESPONSE = "/fidouaf/v1/public/regResponse";
 
     public static SharedPreferences getSharedPreferences(Context context) {

@@ -7,7 +7,11 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.Toast;
 
+import org.lyreg.fido_uaf_android_demo.exception.UafProcessingException;
+import org.lyreg.fido_uaf_android_demo.http.IRelyingPartyComms;
+import org.lyreg.fido_uaf_android_demo.http.RelyingPartyServerComms;
 import org.lyreg.fido_uaf_android_demo.uaf.AndroidClientIntentParameters;
 import org.lyreg.fido_uaf_android_demo.uaf.FidoOperation;
 import org.lyreg.fido_uaf_android_demo.uaf.IUafClientUtils;
@@ -21,6 +25,8 @@ import java.util.Set;
 public class BaseActivity extends AppCompatActivity {
     private final static String TAG = "BaseActivity";
 
+    protected enum FidoOpCommsType {OneWay, Return}
+
     private FidoOperation mCurrentUafOperation;
 
     // The list of FIDO Clients
@@ -32,6 +38,8 @@ public class BaseActivity extends AppCompatActivity {
     // UAF Client Utils
     private static IUafClientUtils uafClientUtils = null;
 
+    private static IRelyingPartyComms mRelyingPartyComms = null;
+
     /**
      * Initialise global interfaces which are made available to all activities which derive from this class
      * @param savedInstanceState the saved instance state
@@ -42,6 +50,10 @@ public class BaseActivity extends AppCompatActivity {
 
         if(uafClientUtils == null) {
             uafClientUtils = new UafClientUtils();
+        }
+
+        if(mRelyingPartyComms == null) {
+            mRelyingPartyComms = new RelyingPartyServerComms(this);
         }
     }
 
@@ -130,6 +142,30 @@ public class BaseActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * Send a UAF intent to a UAF client.
+     * <p>If a client cannot be found, the operation fails.</p>
+     * @param uafClientIntent intent
+     * @param opCommsType comms type. {@link org.lyreg.fido_uaf_android_demo.BaseActivity.FidoOpCommsType#Return} indicates that the
+     *                    intent will generate a result from the client.
+     *                    {@link org.lyreg.fido_uaf_android_demo.BaseActivity.FidoOpCommsType#OneWay} indicates that the intent is
+     *                    one-way and has no result.
+     */
+    protected void sendUafClientIntent(Intent uafClientIntent, FidoOpCommsType opCommsType) {
+        List<ResolveInfo> clientList = getUafClientList();
+
+        if (clientList != null && clientList.size() > 0) {
+            if(opCommsType == FidoOpCommsType.Return) {
+                Log.e("sendUafClientIntent", "sendUafClientIntent");
+                startActivityForResult(uafClientIntent, AndroidClientIntentParameters.requestCode);
+            } else {
+                startActivity(uafClientIntent);
+            }
+        } else {
+            throw new UafProcessingException("no_fido_client_found");
+        }
+    }
+
 
     /***
      * This is a default implementation of the FIDO activity callback when the FIDO client
@@ -163,7 +199,20 @@ public class BaseActivity extends AppCompatActivity {
         }
     }
 
+    protected IRelyingPartyComms getRelyingPartyComms() {
+        if(mRelyingPartyComms != null) {
+            return mRelyingPartyComms;
+        } else {
+            mRelyingPartyComms = new RelyingPartyServerComms(this);
+            return mRelyingPartyComms;
+        }
+    }
+
     protected Set<String> getAvailableAuthenticatorAaids() {
         return mAvailableAuthenticatorAaids;
+    }
+
+    protected void displayError(String message) {
+        Toast.makeText(this, message, Toast.LENGTH_LONG).show();
     }
 }

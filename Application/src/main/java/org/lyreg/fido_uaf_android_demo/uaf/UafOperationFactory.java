@@ -8,4 +8,8 @@ public class UafOperationFactory {
     public static UafOperation createDiscover() {
         return new UafOperation(UAFIntentType.DISCOVER, null, null, null, null ,null);
     }
+
+    public static UafOperation createUAFOperation(final UAFMessage message, final String origin, final String channelBindings) {
+        return new UafOperation(UAFIntentType.UAF_OPERATION, message, origin, channelBindings, null, null);
+    }
 }

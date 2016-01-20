@@ -3,11 +3,11 @@ package org.lyreg.fido_uaf_android_demo.controller.model;
 /**
  * Created by Administrator on 2016/1/19.
  */
-public class CreateAuthRequestResponse {
+public class GetAuthRequestResponse {
 
     private String fidoAuthenticationRequest;
 
-    public CreateAuthRequestResponse() {}
+    public GetAuthRequestResponse() {}
 
     public void setFidoAuthenticationRequest(String fidoAuthenticationRequest) {
         this.fidoAuthenticationRequest = fidoAuthenticationRequest;

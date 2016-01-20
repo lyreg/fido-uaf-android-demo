@@ -66,11 +66,23 @@ public class IntroActivity extends BaseActivity {
             }
         });
 
+        mFidoRegiterButton.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                openRegistrationActivity();
+            }
+        });
+
         mIntroView.setVisibility(View.VISIBLE);
 
         mDiscoveryButton.setEnabled(true);
         mFidoRegiterButton.setEnabled(false);
         Log.v("onCreate", Preferences.getSettingsParam(this, Preferences.PREF_SERVER_URL, ""));
+    }
+
+    private void openRegistrationActivity() {
+        Intent intent = new Intent(this, RegistrationActivity.class);
+        startActivity(intent);
     }
 
     /***
