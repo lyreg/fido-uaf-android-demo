@@ -6,6 +6,7 @@
 
     <string name="action_discovery">Discovery</string>
     <string name="action_register_with_fido">Register With Fido</string>
+    <string name="action_login_with_fido">Login With Fido</string>
     <string name="title_activity_settings">Settings</string>
 
     <!-- Strings related to Settings -->

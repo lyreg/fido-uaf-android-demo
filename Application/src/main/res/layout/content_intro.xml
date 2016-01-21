@@ -32,7 +32,7 @@
         style="?android:attr/progressBarStyleLarge"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
+        android:layout_marginTop="20dp"
         android:layout_marginBottom="8dp"
         android:visibility="gone" />
 
@@ -62,6 +62,14 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp" android:text="@string/action_register_with_fido"
+                android:focusable="true" />
+
+            <Button android:id="@+id/login_fido_button"
+                android:background="@drawable/standard_button"
+                style="@style/ButtonFont"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp" android:text="@string/action_login_with_fido"
                 android:focusable="true" />
 
         </LinearLayout>

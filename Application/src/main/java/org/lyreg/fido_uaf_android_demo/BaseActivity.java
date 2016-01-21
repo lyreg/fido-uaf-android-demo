@@ -200,6 +200,8 @@ public class BaseActivity extends AppCompatActivity {
         this.mCurrentUafOperation = operation;
     }
 
+    protected FidoOperation getCurrentFidoOperation() { return this.mCurrentUafOperation; }
+
     protected IUafClientUtils getUafClientUtils() {
         if(uafClientUtils != null) {
             return uafClientUtils;

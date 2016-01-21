@@ -2,6 +2,7 @@ package org.lyreg.fido_uaf_android_demo.http;
 
 import org.lyreg.fido_uaf_android_demo.controller.model.GetAuthRequestResponse;
 import org.lyreg.fido_uaf_android_demo.controller.model.GetRegRequestResponse;
+import org.lyreg.fido_uaf_android_demo.controller.model.PostAuthResponseResponse;
 import org.lyreg.fido_uaf_android_demo.controller.model.PostRegResponseResponse;
 
 /**
@@ -32,4 +33,13 @@ public interface IRelyingPartyComms {
      * @return CreateAuthRequestResponse
      */
     GetAuthRequestResponse GetAuthRequest();
+
+    /***
+     * Post a FIDO Authentication response from FIDO client to server,
+     * this operation processes the response from the FIDO authenticator
+     *
+     * @param payload - the response from the authenticator
+     * @return PostAuthResponseResponse
+     */
+    PostAuthResponseResponse PostAuthResponse(String payload);
 }

@@ -73,11 +73,37 @@ public class RelyingPartyServerComms implements IRelyingPartyComms {
      */
     @Override
     public GetAuthRequestResponse GetAuthRequest() {
-        return null;
+        HttpResponse httpResponse = httpComms.get(Preferences.GET_AUTH_REQUEST);
+        if(httpResponse.getHttpStatusCode() == HttpURLConnection.HTTP_CREATED
+                || httpResponse.getHttpStatusCode() == HttpURLConnection.HTTP_OK ) {
+            GetAuthRequestResponse getAuthResponse = new GetAuthRequestResponse();
+            getAuthResponse.setFidoAuthenticationRequest(httpResponse.getPayload());
+            return getAuthResponse;
+        } else {
+            Error error = new Error(httpResponse.getHttpStatusCode(), httpResponse.getPayload());
+            throw new ServerError(error);
+        }
     }
 
 
-//    private <T> T get(String relativeUrl, Class<T> clazz) {
-//
-//    }
+    /***
+     * Post a FIDO Authentication response from FIDO client to server,
+     * this operation processes the response from the FIDO authenticator
+     *
+     * @param payload - the response from the authenticator
+     * @return PostAuthResponseResponse
+     */
+    public PostAuthResponseResponse PostAuthResponse(String payload) {
+        HttpResponse httpResponse = httpComms.post(Preferences.POST_AUTH_RESPONSE, payload);
+        if(httpResponse.getHttpStatusCode() == HttpURLConnection.HTTP_CREATED
+                || httpResponse.getHttpStatusCode() == HttpURLConnection.HTTP_OK ) {
+            PostAuthResponseResponse postAuthResponse = new PostAuthResponseResponse();
+            postAuthResponse.setFidoAuthenticationResponse(httpResponse.getPayload());
+            return postAuthResponse;
+        } else {
+            Error error = new Error(httpResponse.getHttpStatusCode(), httpResponse.getPayload());
+            throw new ServerError(error);
+        }
+    }
+
 }

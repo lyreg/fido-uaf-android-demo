@@ -2,6 +2,7 @@ package org.lyreg.fido_uaf_android_demo;
 
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
+import android.content.Context;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Build;
@@ -14,6 +15,7 @@ import android.util.Log;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ProgressBar;
@@ -81,6 +83,8 @@ public class RegistrationActivity extends BaseActivity {
         } else {
             showProgress(true);
 
+            InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
+            imm.hideSoftInputFromWindow(mUserNameEditText.getWindowToken(), 0);
             GetRegRequestTask mGetRegRequestTask = new GetRegRequestTask(user);
             mGetRegRequestTask.execute();
         }
@@ -169,16 +173,14 @@ public class RegistrationActivity extends BaseActivity {
                 // client so that it might delete the credential it generated on server failure. The response code
                 // is also checked by the RP app. If the return code indicates that no error was returned by the server then
                 // the log-in success screen is displayed.
-
                 PostRegResponseResponse response = result.getResponse();
                 Log.e("PostRegResponseTask", response.getFidoRegistrationResponse());
-                Intent intent = getUafClientUtils().getUafOperationCompletionStatusIntent(response.getFidoRegistrationResponse()
-                        , 1200, "success");
-//                // Send authentication request to the UAF client
-//                setCurrentUafOperation(FidoOperation.Registration);
-//                Intent regIntent = getUafClientUtils()
-//                        .getUafOperationIntent(FidoOperation.Registration, response.getFidoRegistrationRequest());
-//                sendUafClientIntent(regIntent, FidoOpCommsType.Return);
+                Intent intent = getUafClientUtils().
+                        getUafOperationCompletionStatusIntent(response.getFidoRegistrationResponse(), 1200, "success");
+                sendFidoOperationCompletionIntent(intent);
+
+                showProgress(false);
+
             } else {
                 // SERVER ERROR
                 // Now we need to send the registration response and server error back to the UAF client.

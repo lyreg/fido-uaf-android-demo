@@ -17,15 +17,23 @@ import android.view.View.*;
 import android.widget.Button;
 import android.widget.ListView;
 import android.widget.ProgressBar;
+import android.widget.Toast;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.JSONTokener;
 import org.lyreg.fido_uaf_android_demo.adapter.AuthenticatorListAdapter;
+import org.lyreg.fido_uaf_android_demo.controller.model.GetAuthRequestResponse;
+import org.lyreg.fido_uaf_android_demo.controller.model.GetRegRequestResponse;
+import org.lyreg.fido_uaf_android_demo.controller.model.PostAuthResponseResponse;
+import org.lyreg.fido_uaf_android_demo.controller.model.ServerOperationResult;
+import org.lyreg.fido_uaf_android_demo.exception.CommunicationsException;
+import org.lyreg.fido_uaf_android_demo.exception.ServerError;
 import org.lyreg.fido_uaf_android_demo.uaf.AndroidClientIntentParameters;
 import org.lyreg.fido_uaf_android_demo.uaf.FidoOperation;
 import org.lyreg.fido_uaf_android_demo.uaf.UafClientLogUtils;
+import org.lyreg.fido_uaf_android_demo.uaf.UafServerResponseCodes;
 import org.lyreg.fido_uaf_android_demo.utils.LogUtils;
 import org.lyreg.fido_uaf_android_demo.utils.Preferences;
 
@@ -39,6 +47,7 @@ public class IntroActivity extends BaseActivity {
     private ProgressBar mIntroProgressBar;
     private Button mDiscoveryButton;
     private Button mFidoRegiterButton;
+    private Button mFidoLoginButton;
 
     // Used during the process of dicover all the FIDO clients on the device
     private int uafClientIdx = 0;
@@ -55,14 +64,13 @@ public class IntroActivity extends BaseActivity {
         mIntroProgressBar = (ProgressBar) findViewById(R.id.intro_progress);
         mDiscoveryButton = (Button) findViewById(R.id.discovery_button);
         mFidoRegiterButton = (Button) findViewById(R.id.register_fido_button);
+        mFidoLoginButton = (Button) findViewById(R.id.login_fido_button);
 
         mDiscoveryButton.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
                 Log.v("OnClick", "discovery");
-                showProgress(true);
-                FindClientsAndAuthenticators findClientsAndAuthenticators = new FindClientsAndAuthenticators();
-                findClientsAndAuthenticators.execute();
+                attemptFindClientsAndAuthenticators();
             }
         });
 
@@ -73,16 +81,36 @@ public class IntroActivity extends BaseActivity {
             }
         });
 
+        mFidoLoginButton.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                attemptLoginWithFido();
+            }
+        });
+
         mIntroView.setVisibility(View.VISIBLE);
 
         mDiscoveryButton.setEnabled(true);
         mFidoRegiterButton.setEnabled(false);
+        mFidoLoginButton.setEnabled(false);
         Log.v("onCreate", Preferences.getSettingsParam(this, Preferences.PREF_SERVER_URL, ""));
+    }
+
+    private void attemptFindClientsAndAuthenticators() {
+        showProgress(true);
+        FindClientsAndAuthenticators findClientsAndAuthenticators = new FindClientsAndAuthenticators();
+        findClientsAndAuthenticators.execute();
     }
 
     private void openRegistrationActivity() {
         Intent intent = new Intent(this, RegistrationActivity.class);
         startActivity(intent);
+    }
+
+    private void attemptLoginWithFido() {
+        showProgress(true);
+        GetAuthRequestTask mGetAuthRequestTask = new GetAuthRequestTask();
+        mGetAuthRequestTask.execute();
     }
 
     /***
@@ -170,15 +198,28 @@ public class IntroActivity extends BaseActivity {
     @Override
     protected void processUafClientResponse(String uafResponseJson) {
 
-        updateAvailableAuthenticatorAaidList(getAaidsFromDiscoveryData(uafResponseJson));
-        retrieveAvailableAuthenticatorAaids();
+        if(getCurrentFidoOperation() == FidoOperation.Discover) {
+            updateAvailableAuthenticatorAaidList(getAaidsFromDiscoveryData(uafResponseJson));
+            retrieveAvailableAuthenticatorAaids();
+        } else if(getCurrentFidoOperation() == FidoOperation.Authentication) {
+            // Continue FIDO authentication (log-in with FIDO)
+            LoginWithFidoTask mLoginWithFidoTask = new LoginWithFidoTask(uafResponseJson);
+            mLoginWithFidoTask.execute();
+        }
+
     }
 
     @Override
     protected void onActivityResultFailure(String errorMsg) {
 
-        updateAvailableAuthenticatorAaidList(new ArrayList<String>());
-        retrieveAvailableAuthenticatorAaids();
+        if(getCurrentFidoOperation() == FidoOperation.Discover) {
+            updateAvailableAuthenticatorAaidList(new ArrayList<String>());
+            retrieveAvailableAuthenticatorAaids();
+        } else if(getCurrentFidoOperation() == FidoOperation.Authentication) {
+            showProgress(false);
+            Toast.makeText(this, "Could not process the authentication request.  Error from FIDO Client: " + errorMsg, Toast.LENGTH_LONG).show();
+        }
+
     }
 
     /***
@@ -212,20 +253,6 @@ public class IntroActivity extends BaseActivity {
      */
     public class FindClientsAndAuthenticators extends AsyncTask {
 
-        /**
-         * Override this method to perform a computation on a background thread. The
-         * specified parameters are the parameters passed to {@link #execute}
-         * by the caller of this task.
-         * <p/>
-         * This method can call {@link #publishProgress} to publish updates
-         * on the UI thread.
-         *
-         * @param params The parameters of the task.
-         * @return A result, defined by the subclass of this task.
-         * @see #onPreExecute()
-         * @see #onPostExecute
-         * @see #publishProgress
-         */
         @Override
         protected Object doInBackground(Object[] params) {
 
@@ -244,6 +271,92 @@ public class IntroActivity extends BaseActivity {
         }
     }
 
+    /***
+     * Class to handle the creation of the FIDO authentication request
+     */
+    public class GetAuthRequestTask extends AsyncTask<Void, Void, ServerOperationResult<GetAuthRequestResponse>> {
+
+        public GetAuthRequestTask() {}
+
+        @Override
+        protected ServerOperationResult<GetAuthRequestResponse> doInBackground(Void... params) {
+            ServerOperationResult<GetAuthRequestResponse> result = null;
+
+            try {
+                GetAuthRequestResponse response = getRelyingPartyComms().GetAuthRequest();
+                result = new ServerOperationResult<>(response);
+            } catch (ServerError e) {
+                result = new ServerOperationResult<>(e.getError());
+            } catch (CommunicationsException e) {
+                result = new ServerOperationResult<>(e.getError());
+            }
+            return result;
+        }
+
+        @Override
+        protected void onPostExecute(ServerOperationResult<GetAuthRequestResponse> result) {
+            if(result.isSuccessful()) {
+                GetAuthRequestResponse response = result.getResponse();
+
+                // Send authentication request to the UAF client
+                setCurrentUafOperation(FidoOperation.Authentication);
+                Intent intent = getUafClientUtils().getUafOperationIntent(FidoOperation.Authentication,
+                        response.getFidoAuthenticationRequest());
+                sendUafClientIntent(intent, FidoOpCommsType.Return);
+            } else {
+                endProgerssWithMsg(result.getError().getMessage());
+            }
+        }
+    }
+
+    /***
+     * Class to handle the actual authentication of the user with FIDO.  The
+     * response from the FIDO client is sent to the server where the authentication is
+     * performed.
+     */
+    public class LoginWithFidoTask extends AsyncTask<Void, Void, ServerOperationResult<PostAuthResponseResponse>> {
+
+        private String uafResponseJson;
+        public LoginWithFidoTask(String response) { this.uafResponseJson = response; }
+
+        @Override
+        protected ServerOperationResult<PostAuthResponseResponse> doInBackground(Void... params) {
+            ServerOperationResult<PostAuthResponseResponse> result = null;
+            try {
+                PostAuthResponseResponse response = getRelyingPartyComms().PostAuthResponse(this.uafResponseJson);
+                result = new ServerOperationResult<>(response);
+            } catch (ServerError e) {
+                result = new ServerOperationResult<>(e.getError());
+            } catch (CommunicationsException e) {
+                result = new ServerOperationResult<>(e.getError());
+            }
+            return result;
+        }
+
+        @Override
+        protected void onPostExecute(ServerOperationResult<PostAuthResponseResponse> result) {
+            if(result.isSuccessful()) {
+                // SERVER RESPONDED OK
+                PostAuthResponseResponse response = result.getResponse();
+
+                Log.e("PostRegResponseTask", response.getFidoAuthenticationResponse());
+                Intent intent = getUafClientUtils().
+                        getUafOperationCompletionStatusIntent(response.getFidoAuthenticationResponse(), 1200, "success");
+                sendFidoOperationCompletionIntent(intent);
+
+                showProgress(false);
+            } else {
+                // SERVER ERROR
+                // Now we need to send the registration response and server error back to the UAF client.
+                Intent intent = getUafClientUtils().getUafOperationCompletionStatusIntent(
+                        uafResponseJson, UafServerResponseCodes.INTERNAL_SERVER_ERROR,
+                        "Internal Server Error");
+                sendFidoOperationCompletionIntent(intent);
+
+                endProgerssWithMsg(result.getError().getMessage());
+            }
+        }
+    }
 
     /**
      * Shows the progress UI and hides the login form.
@@ -279,11 +392,20 @@ public class IntroActivity extends BaseActivity {
             mIntroView.setVisibility(show ? View.GONE : View.VISIBLE);
         }
 
-        if(clientsDiscoverAttempted == true) {
+        if(clientsDiscoverAttempted == true &&
+                getUafClientList().size() > 0 && getAvailableAuthenticatorAaids().size() > 0 ) {
             mFidoRegiterButton.setEnabled(true);
+            mFidoLoginButton.setEnabled(true);
         } else {
             mFidoRegiterButton.setEnabled(false);
+            mFidoLoginButton.setEnabled(false);
         }
+    }
+
+    private void endProgerssWithMsg(String errorMsg) {
+        showProgress(false);
+        displayError(errorMsg);
+        mIntroView.requestFocus();
     }
 
     public class AuthenticatorPopupWindow extends BottomPushPopupWindow {
