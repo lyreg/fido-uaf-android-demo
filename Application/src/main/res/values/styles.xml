@@ -25,6 +25,10 @@
         <item name="android:textColor">@drawable/text_color</item>
     </style>
 
+    <style name="SignupFont" parent="@android:style/TextAppearance.Medium">
+        <item name="android:textColor">#000000</item>
+    </style>
+
 
     <style name="Animations_BottomPush">
         <item name="android:windowEnterAnimation">@anim/push_bottom_in</item>

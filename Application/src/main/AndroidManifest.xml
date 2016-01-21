@@ -30,8 +30,11 @@
         <activity
             android:name=".SettingsActivity"
             android:label="@string/title_activity_settings"
-            android:theme="@style/AppTheme.Animations"/>
-
+            android:theme="@style/AppTheme.Animations" />
+        <activity
+            android:name=".HomeActivity"
+            android:label="@string/title_activity_home"
+            android:theme="@style/AppTheme.NoActionBar"></activity>
     </application>
 
 </manifest>

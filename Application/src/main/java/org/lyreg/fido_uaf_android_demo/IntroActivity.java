@@ -11,6 +11,7 @@ import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
 import android.view.View.*;
@@ -36,7 +37,9 @@ import org.lyreg.fido_uaf_android_demo.uaf.UafClientLogUtils;
 import org.lyreg.fido_uaf_android_demo.uaf.UafServerResponseCodes;
 import org.lyreg.fido_uaf_android_demo.utils.LogUtils;
 import org.lyreg.fido_uaf_android_demo.utils.Preferences;
+import org.w3c.dom.Text;
 
+import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -111,6 +114,34 @@ public class IntroActivity extends BaseActivity {
         showProgress(true);
         GetAuthRequestTask mGetAuthRequestTask = new GetAuthRequestTask();
         mGetAuthRequestTask.execute();
+    }
+
+    /***
+     * The login has been successful and the server has returned a username and some additional
+     * details to present to the user.
+     *
+     * @param response the PostAuthResponseResponse response
+     */
+    protected void showLoggedIn(PostAuthResponseResponse response) {
+
+        String authResp = response.getFidoAuthenticationResponse();
+        try {
+            JSONArray authRespJsonArray = new JSONArray(authResp);
+            JSONObject authRespJsonObj = authRespJsonArray.getJSONObject(0);
+            String username = authRespJsonObj.getString("username");
+            if(!TextUtils.isEmpty(username)) {
+                Intent intent = new Intent(this, HomeActivity.class);
+                intent.putExtra("USERNAME", username);
+                String dateString = DateFormat.getDateTimeInstance().format(System.currentTimeMillis());
+                intent.putExtra("LAST_LOGGED_IN", dateString);
+                startActivity(intent);
+            } else {
+                throw new Exception("The username in server response is null or or 0-length.");
+            }
+        } catch (Exception e) {
+            Log.e("showLoggedIn", e.getMessage());
+            displayError(e.getMessage());
+        }
     }
 
     /***
@@ -345,6 +376,9 @@ public class IntroActivity extends BaseActivity {
                 sendFidoOperationCompletionIntent(intent);
 
                 showProgress(false);
+
+                showLoggedIn(response);
+
             } else {
                 // SERVER ERROR
                 // Now we need to send the registration response and server error back to the UAF client.

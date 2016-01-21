@@ -2,6 +2,7 @@
     <string name="app_name">Fido uaf android demo</string>
     <string name="action_settings">Settings</string>
     <string name="title_activity_intro">Fido Uaf Android Demo</string>
+    <string name="title_activity_home">HomeActivity</string>
 
 
     <string name="action_discovery">Discovery</string>
@@ -18,5 +19,14 @@
 
     <string name="Register">REGSTER</string>
     <string name="Registration">Registration</string>
+    <string name="home_title_bar">Home</string>
 
+    <string name="home_user_label">User:</string>
+    <string name="home_user">Test User</string>
+    <string name="home_last_logged_in_label">Last Logged in:</string>
+    <string name="home_last_logged_in_date">June 21, 2015</string>
+
+    <string name="action_transactions">Transactions</string>
+    <string name="action_deregistration">Deregistration</string>
+    <string name="action_logout">Logout</string>
 </resources>
